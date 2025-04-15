@@ -16,7 +16,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Depth Anything V2 Metric Depth Estimation')
     
     parser.add_argument('--input_images_dir', type=str, default='/home/ubuntu/Anantak/SensorUnit/data/Map/ImageData/017/00/')
-    parser.add_argument('--img-path', type=str, default='/home/ubuntu/Anantak/SensorUnit/data/Images/Live/010/00/color_0000.png')
     parser.add_argument('--input-size', type=int, default=518)
     parser.add_argument('--outdir', type=str, default='./vis_depth')
     
@@ -28,7 +27,7 @@ if __name__ == '__main__':
     parser.add_argument('--pred-only', dest='pred_only', action='store_true', help='only display the prediction')
     parser.add_argument('--grayscale', dest='grayscale', action='store_true', help='do not apply colorful palette')
     
-    parser.add_argument('--save_exr', action='store_true', help='save depths as exr')
+    parser.add_argument('--save_exr', action='store_true', help='save depths as exr', default=True)
 
     args = parser.parse_args()
     
@@ -45,14 +44,10 @@ if __name__ == '__main__':
     depth_anything.load_state_dict(torch.load(args.load_from, map_location='cpu'))
     depth_anything = depth_anything.to(DEVICE).eval()
     
-    if os.path.isfile(args.img_path):
-        if args.img_path.endswith('txt'):
-            with open(args.img_path, 'r') as f:
-                filenames = f.read().splitlines()
-        else:
-            filenames = [args.img_path]
-    else:
-        filenames = glob.glob(os.path.join(args.img_path, '**/*'), recursive=True)
+    # Load data
+    #   frames, target_fps = read_video_frames(args.input_video, args.max_len, args.target_fps, args.max_res)
+    filenames, timestamps = read_png_and_txt_ordered_cv2_rgb(args.input_images_dir)
+    print(f"Read {len(filenames)} images from {args.input_images_dir}")
     
     os.makedirs(args.outdir, exist_ok=True)
     
